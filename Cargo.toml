@@ -18,7 +18,7 @@ cpi = ["no-entrypoint"]
 anchor-gen = "0.3.1"
 anchor-lang = "0.31.0"
 solana-program = "1.18.16"
-spl-token = { version = "3.5.0", features = ["no-entrypoint"] }
+spl-token = { version = "5.0" }
 spl-associated-token-account = { version = "1.1.2", features = [
     "no-entrypoint",
 ] }
