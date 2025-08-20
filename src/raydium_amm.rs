@@ -3,7 +3,7 @@
 #![allow(clippy::too_many_arguments)]
 
 use solana_program::{
-    instruction::{AccountMeta, Instruction},
+    instruction::{ AccountMeta, Instruction },
     program_error::ProgramError,
     pubkey::Pubkey,
     sysvar,
@@ -220,9 +220,7 @@ pub enum AmmInstruction {
 impl AmmInstruction {
     /// Unpacks a byte buffer into a [AmmInstruction](enum.AmmInstruction.html).
     pub fn unpack(input: &[u8]) -> Result<Self, ProgramError> {
-        let (&tag, rest) = input
-            .split_first()
-            .ok_or(ProgramError::InvalidInstructionData)?;
+        let (&tag, rest) = input.split_first().ok_or(ProgramError::InvalidInstructionData)?;
         Ok(match tag {
             1 => {
                 let (nonce, rest) = Self::unpack_u8(rest)?;
@@ -269,7 +267,9 @@ impl AmmInstruction {
                 })
             }
 
-            _ => return Err(ProgramError::InvalidInstructionData.into()),
+            _ => {
+                return Err(ProgramError::InvalidInstructionData.into());
+            }
         })
     }
 
@@ -305,23 +305,16 @@ impl AmmInstruction {
     pub fn pack(&self) -> Result<Vec<u8>, ProgramError> {
         let mut buf = Vec::with_capacity(size_of::<Self>());
         match &*self {
-            Self::Initialize2(InitializeInstruction2 {
-                nonce,
-                open_time,
-                init_pc_amount,
-                init_coin_amount,
-            }) => {
+            Self::Initialize2(
+                InitializeInstruction2 { nonce, open_time, init_pc_amount, init_coin_amount },
+            ) => {
                 buf.push(1);
                 buf.push(*nonce);
                 buf.extend_from_slice(&open_time.to_le_bytes());
                 buf.extend_from_slice(&init_pc_amount.to_le_bytes());
                 buf.extend_from_slice(&init_coin_amount.to_le_bytes());
             }
-            Self::Deposit(DepositInstruction {
-                max_coin_amount,
-                max_pc_amount,
-                base_side,
-            }) => {
+            Self::Deposit(DepositInstruction { max_coin_amount, max_pc_amount, base_side }) => {
                 buf.push(3);
                 buf.extend_from_slice(&max_coin_amount.to_le_bytes());
                 buf.extend_from_slice(&max_pc_amount.to_le_bytes());
@@ -332,18 +325,12 @@ impl AmmInstruction {
                 buf.extend_from_slice(&amount.to_le_bytes());
             }
 
-            Self::SwapBaseIn(SwapInstructionBaseIn {
-                amount_in,
-                minimum_amount_out,
-            }) => {
+            Self::SwapBaseIn(SwapInstructionBaseIn { amount_in, minimum_amount_out }) => {
                 buf.push(9);
                 buf.extend_from_slice(&amount_in.to_le_bytes());
                 buf.extend_from_slice(&minimum_amount_out.to_le_bytes());
             }
-            Self::SwapBaseOut(SwapInstructionBaseOut {
-                max_amount_in,
-                amount_out,
-            }) => {
+            Self::SwapBaseOut(SwapInstructionBaseOut { max_amount_in, amount_out }) => {
                 buf.push(11);
                 buf.extend_from_slice(&max_amount_in.to_le_bytes());
                 buf.extend_from_slice(&amount_out.to_le_bytes());
@@ -377,7 +364,7 @@ pub fn initialize2(
     nonce: u8,
     open_time: u64,
     init_pc_amount: u64,
-    init_coin_amount: u64,
+    init_coin_amount: u64
 ) -> Result<Instruction, ProgramError> {
     let init_data = AmmInstruction::Initialize2(InitializeInstruction2 {
         nonce,
@@ -412,7 +399,7 @@ pub fn initialize2(
         AccountMeta::new(*user_wallet, true),
         AccountMeta::new(*user_token_coin, false),
         AccountMeta::new(*user_token_pc, false),
-        AccountMeta::new(*user_token_lp, false),
+        AccountMeta::new(*user_token_lp, false)
     ];
 
     Ok(Instruction {
@@ -440,14 +427,13 @@ pub fn deposit(
     user_owner: &Pubkey,
     max_coin_amount: u64,
     max_pc_amount: u64,
-    base_side: u64,
+    base_side: u64
 ) -> Result<Instruction, ProgramError> {
     let data = AmmInstruction::Deposit(DepositInstruction {
         max_coin_amount,
         max_pc_amount,
         base_side,
-    })
-    .pack()?;
+    }).pack()?;
 
     let accounts = vec![
         // spl token
@@ -467,7 +453,7 @@ pub fn deposit(
         AccountMeta::new(*user_token_pc, false),
         AccountMeta::new(*user_token_lp, false),
         AccountMeta::new_readonly(*user_owner, true),
-        AccountMeta::new_readonly(*market_event_queue, false),
+        AccountMeta::new_readonly(*market_event_queue, false)
     ];
 
     Ok(Instruction {
@@ -502,7 +488,7 @@ pub fn withdraw(
 
     referrer_pc_account: Option<&Pubkey>,
 
-    amount: u64,
+    amount: u64
 ) -> Result<Instruction, ProgramError> {
     let data = AmmInstruction::Withdraw(WithdrawInstruction { amount }).pack()?;
 
@@ -530,7 +516,7 @@ pub fn withdraw(
         AccountMeta::new_readonly(*user_owner, true),
         AccountMeta::new(*market_event_queue, false),
         AccountMeta::new(*market_bids, false),
-        AccountMeta::new(*market_asks, false),
+        AccountMeta::new(*market_asks, false)
     ];
 
     if let Some(referrer_pc_key) = referrer_pc_account {
@@ -565,13 +551,12 @@ pub fn swap_base_in(
     user_source_owner: &Pubkey,
 
     amount_in: u64,
-    minimum_amount_out: u64,
+    minimum_amount_out: u64
 ) -> Result<Instruction, ProgramError> {
     let data = AmmInstruction::SwapBaseIn(SwapInstructionBaseIn {
         amount_in,
         minimum_amount_out,
-    })
-    .pack()?;
+    }).pack()?;
 
     let accounts = vec![
         // spl token
@@ -595,7 +580,7 @@ pub fn swap_base_in(
         // user
         AccountMeta::new(*user_token_source, false),
         AccountMeta::new(*user_token_destination, false),
-        AccountMeta::new_readonly(*user_source_owner, true),
+        AccountMeta::new_readonly(*user_source_owner, true)
     ];
 
     Ok(Instruction {
@@ -626,13 +611,12 @@ pub fn swap_base_out(
     user_source_owner: &Pubkey,
 
     max_amount_in: u64,
-    amount_out: u64,
+    amount_out: u64
 ) -> Result<Instruction, ProgramError> {
     let data = AmmInstruction::SwapBaseOut(SwapInstructionBaseOut {
         max_amount_in,
         amount_out,
-    })
-    .pack()?;
+    }).pack()?;
 
     let accounts = vec![
         // spl token
@@ -656,7 +640,7 @@ pub fn swap_base_out(
         // user
         AccountMeta::new(*user_token_source, false),
         AccountMeta::new(*user_token_destination, false),
-        AccountMeta::new_readonly(*user_source_owner, true),
+        AccountMeta::new_readonly(*user_source_owner, true)
     ];
 
     Ok(Instruction {
