@@ -1,0 +1,24 @@
+[package]
+name = "raydium-amm-cpi-legacy"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+name = "amm"
+path = "src/mod.rs"
+
+[features]
+default = ["cpi"]
+no-entrypoint = []
+no-idl = []
+no-log-ix-name = []
+cpi = ["no-entrypoint"]
+
+[dependencies]
+anchor-gen = "0.3.1"
+anchor-lang = "0.31.0"
+solana-program = "1.18.16"
+spl-token = { version = "3.5.0", features = ["no-entrypoint"] }
+spl-associated-token-account = { version = "1.1.2", features = [
+    "no-entrypoint",
+] }
